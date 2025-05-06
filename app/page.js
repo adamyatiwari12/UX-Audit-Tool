@@ -1,103 +1,229 @@
-import Image from "next/image";
+'use client'
+import { useState } from 'react';
+import Head from 'next/head';
+import UrlForm from '../components/UrlForm';
+import HtmlForm from '../components/HtmlForm';
+import AnalysisResults from '../components/AnalysisResults';
+import LoadingAnimation from '../components/LoadingAnimation';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [activeTab, setActiveTab] = useState('url');
+  const [analysisResults, setAnalysisResults] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [recentAnalyses, setRecentAnalyses] = useState([]);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleUrlSubmit = async (url) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to analyze the URL');
+      }
+      
+      const data = await response.json();
+      setAnalysisResults(data);
+      
+      // Save to recent analyses
+      const newAnalysis = {
+        id: Date.now(),
+        type: 'url',
+        source: url,
+        score: data.overallScore,
+        date: new Date().toLocaleString()
+      };
+      
+      setRecentAnalyses(prev => [newAnalysis, ...prev.slice(0, 4)]);
+      
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleHtmlSubmit = async (html) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ html }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to analyze the HTML');
+      }
+      
+      const data = await response.json();
+      setAnalysisResults(data);
+      
+      // Save to recent analyses
+      const newAnalysis = {
+        id: Date.now(),
+        type: 'html',
+        source: html.substring(0, 50) + '...',
+        score: data.overallScore,
+        date: new Date().toLocaleString()
+      };
+      
+      setRecentAnalyses(prev => [newAnalysis, ...prev.slice(0, 4)]);
+      
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetAnalysis = () => {
+    setAnalysisResults(null);
+    setError(null);
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-blue-100">
+      <Head>
+        <title>Landing Page UX Audit Tool</title>
+        <meta name="description" content="Analyze and improve your landing pages" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+
+      <main className="flex flex-col items-center justify-center flex-1 w-full px-4 py-8">
+        <div className="w-full max-w-4xl">
+          <header className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-800 mb-3">
+              Landing Page UX Audit Tool
+            </h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Get actionable suggestions to improve your landing page performance
+            </p>
+          </header>
+
+          {!analysisResults ? (
+            <>
+              <div className="flex w-full border-b border-gray-200 mb-6">
+                <button 
+                  className={`px-6 py-3 font-medium text-sm transition-colors duration-200 ${
+                    activeTab === 'url' 
+                      ? 'text-blue-600 border-b-2 border-blue-500' 
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                  onClick={() => setActiveTab('url')}
+                >
+                  Analyze URL
+                </button>
+                <button 
+                  className={`px-6 py-3 font-medium text-sm transition-colors duration-200 ${
+                    activeTab === 'html' 
+                      ? 'text-blue-600 border-b-2 border-blue-500' 
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                  onClick={() => setActiveTab('html')}
+                >
+                  Analyze HTML
+                </button>
+                {recentAnalyses.length > 0 && (
+                  <button 
+                    className={`px-6 py-3 font-medium text-sm transition-colors duration-200 ${
+                      activeTab === 'recent' 
+                        ? 'text-blue-600 border-b-2 border-blue-500' 
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                    onClick={() => setActiveTab('recent')}
+                  >
+                    Recent Analyses
+                  </button>
+                )}
+              </div>
+
+              <div className="w-full p-6 bg-white rounded-lg shadow-md">
+                {activeTab === 'url' && (
+                  <UrlForm onSubmit={handleUrlSubmit} loading={loading} />
+                )}
+                
+                {activeTab === 'html' && (
+                  <HtmlForm onSubmit={handleHtmlSubmit} loading={loading} />
+                )}
+                
+                {activeTab === 'recent' && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium text-gray-800 mb-4">Recent Analyses</h3>
+                    {recentAnalyses.map(analysis => (
+                      <div key={analysis.id} className="p-4 bg-gray-50 rounded-lg flex items-center justify-between">
+                        <div>
+                          <p className="font-medium mb-1">
+                            {analysis.type === 'url' ? '🔗 URL' : '📄 HTML'}: {analysis.source}
+                          </p>
+                          <p className="text-sm text-gray-500">{analysis.date}</p>
+                        </div>
+                        <div className="flex items-center">
+                          <div className={`h-8 w-8 rounded-full flex items-center justify-center mr-3 ${
+                            analysis.score >= 80 ? 'bg-green-100 text-green-800' :
+                            analysis.score >= 60 ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {analysis.score}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="w-full p-6 bg-white rounded-lg shadow-md">
+              <div className="mb-4 flex justify-between items-center">
+                <button 
+                  onClick={resetAnalysis}
+                  className="inline-flex items-center px-3 py-1 text-sm font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                  </svg>
+                  Back
+                </button>
+                <div className="text-sm text-gray-500">
+                  {new Date().toLocaleDateString()}
+                </div>
+              </div>
+              <AnalysisResults results={analysisResults} />
+            </div>
+          )}
+
+          {error && (
+            <div className="p-4 mt-4 bg-red-50 text-red-700 rounded-md border border-red-100">
+              <div className="flex">
+                <svg className="h-5 w-5 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{error}</span>
+              </div>
+            </div>
+          )}
+          
+          {loading && <LoadingAnimation />}
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      <footer className="w-full h-16 border-t border-gray-200 flex justify-center items-center">
+        <p className="text-sm text-gray-600">Built with Next.js and Tailwind CSS</p>
       </footer>
     </div>
   );
 }
+
