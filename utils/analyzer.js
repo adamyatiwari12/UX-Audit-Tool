@@ -54,6 +54,7 @@ export async function analyzeLandingPage(html, url = '') {
     const components = extractKeyComponents(html);
     
     const apiKey =process.env.GEMINI_API_KEY;
+    console.log('Using Gemini API Key:', apiKey);
     
     if (!apiKey) {  
       console.error('Gemini API key is not set');
@@ -104,7 +105,6 @@ export async function analyzeLandingPage(html, url = '') {
       }
     `;
 
-    // Direct call to Gemini API using fetch
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {

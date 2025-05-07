@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react';
-import Head from 'next/head';
 import UrlForm from '../components/UrlForm';
 import HtmlForm from '../components/HtmlForm';
 import AnalysisResults from '../components/AnalysisResults';
@@ -95,11 +94,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-blue-100">
-      <Head>
-        <title>Landing Page UX Audit Tool</title>
-        <meta name="description" content="Analyze and improve your landing pages" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
 
       <main className="flex flex-col items-center justify-center flex-1 w-full px-4 py-8">
         <div className="w-full max-w-4xl">
