@@ -22,7 +22,7 @@ export default function HtmlForm({ onSubmit, loading }) {
           onChange={(e) => setHtml(e.target.value)}
           placeholder="<html>...</html>"
           required
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono"
+          className="w-full px-4 py-2 border border-gray-300 text-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono"
           rows="8"
         />
       </div>

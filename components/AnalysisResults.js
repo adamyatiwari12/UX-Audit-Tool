@@ -1,10 +1,9 @@
-// components/AnalysisResults.js
 import { useState } from 'react';
+import { Printer } from 'lucide-react';
 
 export default function AnalysisResults({ results }) {
   const [selectedTab, setSelectedTab] = useState('suggestions');
   
-  // Category badge colors
   const categoryColors = {
     'cta': 'bg-red-100 text-red-800',
     'hierarchy': 'bg-green-100 text-green-800',
@@ -12,14 +11,12 @@ export default function AnalysisResults({ results }) {
     'trust': 'bg-yellow-100 text-yellow-800',
   };
 
-  // Calculate score color based on the overall score
   const getScoreColor = (score) => {
     if (score >= 80) return 'from-green-500 to-green-400';
     if (score >= 60) return 'from-yellow-500 to-yellow-400';
     return 'from-red-500 to-red-400';
   };
 
-  // Group suggestions by category
   const suggestionsByCategory = results.suggestions.reduce((acc, suggestion) => {
     const category = suggestion.category.toLowerCase();
     if (!acc[category]) {
@@ -30,12 +27,12 @@ export default function AnalysisResults({ results }) {
   }, {});
 
   return (
-    <div className="mt-8 w-full">
+    <div className="mt-8 w-full text-black">
       <h2 className="text-2xl font-bold pb-3 mb-6 border-b border-gray-200">
         UX Analysis Results
       </h2>
       
-      <div className="flex justify-between items-center flex-wrap mb-8">
+      <div className="flex justify-around items-center flex-wrap mb-8">
         <div className="text-center">
           <div className={`w-24 h-24 rounded-full bg-gradient-to-r ${getScoreColor(results.overallScore)} flex items-center justify-center mx-auto mb-3`}>
             <span className="text-3xl font-bold text-white">{results.overallScore}</span>
@@ -139,9 +136,7 @@ export default function AnalysisResults({ results }) {
           onClick={() => window.print()} 
           className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
-          <svg className="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-          </svg>
+          <Printer className="mr-2 -ml-1 h-5 w-5" />
           Print Report
         </button>
       </div>

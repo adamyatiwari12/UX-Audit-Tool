@@ -1,15 +1,13 @@
-// utils/analyzer.js
 import { JSDOM } from 'jsdom';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Simple metrics calculation
 const calculateBasicMetrics = (html) => {
   const dom = new JSDOM(html);
   const document = dom.window.document;
   
   const bodyText = document.body.textContent || '';
   const wordCount = bodyText.trim().split(/\s+/).length;
-  const readingTime = Math.ceil(wordCount / 200); // 200 WPM reading speed
+  const readingTime = Math.ceil(wordCount / 200);
   
   return {
     wordCount,
@@ -22,18 +20,15 @@ const calculateBasicMetrics = (html) => {
   };
 };
 
-// Extract key HTML components for analysis
 const extractKeyComponents = (html) => {
   const dom = new JSDOM(html);
   const document = dom.window.document;
   
-  // Extract headings
   const headings = Array.from(document.querySelectorAll('h1, h2, h3')).map(h => ({
     level: h.tagName.toLowerCase(),
     text: h.textContent.trim()
   }));
   
-  // Extract CTAs
   const ctaElements = Array.from(document.querySelectorAll('button, .btn, [class*="button"], a[href]'));
   const ctas = ctaElements.map(cta => ({
     type: cta.tagName.toLowerCase(),
@@ -43,7 +38,6 @@ const extractKeyComponents = (html) => {
                 cta.getBoundingClientRect().width > 200
   })).filter(cta => cta.text.length > 0);
   
-  // Extract meta info
   const title = document.querySelector('title')?.textContent || '';
   const metaDescription = document.querySelector('meta[name="description"]')?.getAttribute('content') || '';
   
@@ -55,18 +49,22 @@ const extractKeyComponents = (html) => {
   };
 };
 
-// Analyze the landing page using Google's Gemini API
 export async function analyzeLandingPage(html, url = '') {
   try {
-    // Get basic metrics
     const metrics = calculateBasicMetrics(html);
     const components = extractKeyComponents(html);
     
-    // Initialize the Gemini API
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const apiKey = process.env.GEMINI_API_KEY;
+    console.log('Using Gemini API Key:', apiKey);
+    
+    if (!apiKey) {
+      console.error('GEMINI_API_KEY environment variable is not set');
+      throw new Error('GEMINI_API_KEY environment variable is not set');
+    }
+    
+    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
     
-    // Create structured analysis prompt
     const prompt = `
       You are a UX expert specialized in landing page optimization. Analyze this landing page ${url ? `at ${url}` : ''} based on the HTML components I'll provide.
       
@@ -111,18 +109,15 @@ export async function analyzeLandingPage(html, url = '') {
       }
     `;
 
-    // Generate content with Gemini
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
     
-    // Parse the response (handle potential JSON parsing issues)
     let analysisResult;
     try {
       analysisResult = JSON.parse(text);
     } catch (e) {
       console.error('Error parsing Gemini response as JSON:', e);
-      // Try to extract JSON from text if it's surrounded by other content
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         try {
@@ -135,7 +130,6 @@ export async function analyzeLandingPage(html, url = '') {
       }
     }
     
-    // Combine API results with our basic metrics
     return {
       ...analysisResult,
       metrics: {
@@ -151,7 +145,6 @@ export async function analyzeLandingPage(html, url = '') {
   } catch (error) {
     console.error('Error using Gemini API:', error);
     
-    // Fallback: Return basic analysis if API fails
     const metrics = calculateBasicMetrics(html);
     
     return {
@@ -160,7 +153,7 @@ export async function analyzeLandingPage(html, url = '') {
         {
           title: "API Error - Basic Analysis Only",
           category: "Copy",
-          description: "We couldn't perform a full UX analysis. Check your Gemini API key configuration.",
+          description: `We couldn't perform a full UX analysis. Error: ${error.message}`,
           recommendation: "Please ensure your Gemini API key is correctly set up in your environment variables."
         }
       ],

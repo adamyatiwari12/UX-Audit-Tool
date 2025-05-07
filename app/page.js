@@ -5,6 +5,7 @@ import UrlForm from '../components/UrlForm';
 import HtmlForm from '../components/HtmlForm';
 import AnalysisResults from '../components/AnalysisResults';
 import LoadingAnimation from '../components/LoadingAnimation';
+import { ArrowLeft, Info } from 'lucide-react';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('url');
@@ -192,9 +193,7 @@ export default function Home() {
                   onClick={resetAnalysis}
                   className="inline-flex items-center px-3 py-1 text-sm font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-50"
                 >
-                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                  </svg>
+                  <ArrowLeft className="mr-1 w-4 h-4" />
                   Back
                 </button>
                 <div className="text-sm text-gray-500">
@@ -208,9 +207,7 @@ export default function Home() {
           {error && (
             <div className="p-4 mt-4 bg-red-50 text-red-700 rounded-md border border-red-100">
               <div className="flex">
-                <svg className="h-5 w-5 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <Info className="h-5 w-5 text-red-400 mr-2" />
                 <span>{error}</span>
               </div>
             </div>
