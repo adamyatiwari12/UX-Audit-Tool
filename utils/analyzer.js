@@ -1,5 +1,4 @@
 import { JSDOM } from 'jsdom';
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const calculateBasicMetrics = (html) => {
   const dom = new JSDOM(html);
@@ -54,16 +53,12 @@ export async function analyzeLandingPage(html, url = '') {
     const metrics = calculateBasicMetrics(html);
     const components = extractKeyComponents(html);
     
-    const apiKey = process.env.GEMINI_API_KEY;
-    console.log('Using Gemini API Key:', apiKey);
+    const apiKey =process.env.GEMINI_API_KEY;
     
-    if (!apiKey) {
-      console.error('GEMINI_API_KEY environment variable is not set');
-      throw new Error('GEMINI_API_KEY environment variable is not set');
+    if (!apiKey) {  
+      console.error('Gemini API key is not set');
+      throw new Error('Gemini API key is not set');
     }
-    
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
     
     const prompt = `
       You are a UX expert specialized in landing page optimization. Analyze this landing page ${url ? `at ${url}` : ''} based on the HTML components I'll provide.
@@ -109,9 +104,35 @@ export async function analyzeLandingPage(html, url = '') {
       }
     `;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    // Direct call to Gemini API using fetch
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: prompt
+                }
+              ]
+            }
+          ]
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Gemini API error: ${errorData.error?.message || response.statusText}`);
+    }
+
+    const data = await response.json();
+    const text = data.candidates[0].content.parts[0].text;
     
     let analysisResult;
     try {

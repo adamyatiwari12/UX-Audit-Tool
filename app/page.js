@@ -34,7 +34,6 @@ export default function Home() {
       const data = await response.json();
       setAnalysisResults(data);
       
-      // Save to recent analyses
       const newAnalysis = {
         id: Date.now(),
         type: 'url',
@@ -72,7 +71,6 @@ export default function Home() {
       const data = await response.json();
       setAnalysisResults(data);
       
-      // Save to recent analyses
       const newAnalysis = {
         id: Date.now(),
         type: 'html',
