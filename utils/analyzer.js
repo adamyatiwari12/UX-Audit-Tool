@@ -175,7 +175,7 @@ export async function analyzeLandingPage(html, url = '') {
           title: "API Error - Basic Analysis Only",
           category: "Copy",
           description: `We couldn't perform a full UX analysis. Error: ${error.message}`,
-          recommendation: "Please ensure your Gemini API key is correctly set up in your environment variables."
+          recommendation: "Please ensure the site is accessible and try again."
         }
       ],
       metrics: {
