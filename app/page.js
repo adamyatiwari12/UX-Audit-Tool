@@ -158,7 +158,7 @@ export default function Home() {
                     {recentAnalyses.map(analysis => (
                       <div key={analysis.id} className="p-4 bg-gray-50 rounded-lg flex items-center justify-between">
                         <div>
-                          <p className="font-medium mb-1">
+                          <p className="font-medium mb-1 text-black">
                             {analysis.type === 'url' ? '🔗 URL' : '📄 HTML'}: {analysis.source}
                           </p>
                           <p className="text-sm text-gray-500">{analysis.date}</p>
